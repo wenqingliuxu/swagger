@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.springboot.vue.sample.dao.SampleMapper">
+	<resultMap type="com.demo.springboot.vue.sample.service.bo.Sample" id="sampleResultMap">
+		<id  property="id" column="sample_id" />
+		<result property="name" column="name" />
+
+		<result property="createTime" column="create_time" />
+
+		<result property="modifyTime" column="modify_time" />
+
+		<result property="createUser" column="create_user" />
+
+		<result property="modifyUser" column="modify_user" />
+	</resultMap>
+
+	<sql id="sampleColumns">
+		${alias}.sample_id,${alias}.name,${alias}.create_time,${alias}.modify_time,${alias}.create_user,${alias}.modify_user
+	</sql>
+
+	<sql id="sampleCountColumns">
+		${alias}.sample_id
+	</sql>
+
+	<insert id="insert" >
+		<selectKey order="AFTER" keyProperty="id" resultType="long">
+			select last_insert_id()
+		</selectKey>
+		insert into sample(sample_id,name,create_time,create_user,modify_time,modify_user) values (#{id},#{name},#{createTime},#{createUser,jdbcType=VARCHAR},#{modifyTime},#{modifyUser,jdbcType=VARCHAR})
+	</insert>
+
+	<update id="update">
+		update sample set
+		name=#{name},modify_time=#{modifyTime},modify_user=#{modifyUser,jdbcType=VARCHAR}
+		where
+		sample_id=#{id}
+	</update>
+
+
+	<delete id="delete">
+		delete from sample
+		<where>
+			<foreach collection="array" index="index" item="sample_id"
+					 open="(" separator="or" close=")">
+				sample_id=#{sample_id}
+			</foreach>
+		</where>
+	</delete>
+
+	<select id="selectOne" resultMap="sampleResultMap">
+		select
+		<include refid="sampleColumns">
+			<property name="alias" value="t" />
+		</include>
+		from sample t
+		where t.sample_id= #{id}
+	</select>
+
+	<select id="selectList" resultMap="sampleResultMap">
+		select
+		<include refid="sampleColumns">
+			<property name="alias" value="t" />
+		</include>
+		from sample t
+		<where>
+			<if test=" name!=null and ''!=name">
+				<bind name="nameLike" value="'%' + _parameter.get('name') + '%'" />
+				t.name like #{nameLike}
+			</if>
+		</where>
+		order by t.name
+	</select>
+
+	<select id="page" resultMap="sampleResultMap">
+		select
+		<include refid="sampleColumns">
+			<property name="alias" value="t" />
+		</include>
+		from sample t
+		<where>
+			<if test=" name!=null and ''!=name">
+				<bind name="nameLike" value="'%' + _parameter.get('name') + '%'" />
+				t.name like #{nameLike}
+			</if>
+		</where>
+		order by t.sample_id
+		<include refid="pager.mysql_pager" />
+	</select>
+
+	<select id="pageCount" resultType="long">
+		select
+		count(
+		<include refid="sampleCountColumns">
+			<property name="alias" value="t" />
+		</include>
+		)
+		from sample t
+		<where>
+			<if test="name!=null and ''!=name">
+				<bind name="nameLike" value="'%' + _parameter.get('name') + '%'" />
+				t.name like #{nameLike}
+			</if>
+		</where>
+	</select>
+</mapper>
